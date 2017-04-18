@@ -1,0 +1,63 @@
+* {
+  box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 10px; }
+
+.inner {
+  background: rgba(0, 0, 0, 0.25);
+  outline: 2px solid rgba(0, 0, 0, 0.25);
+  outline-offset: -2px;
+  padding: 10px; }
+
+.inner:before {
+  display: block;
+  content: " ";
+  padding-top: 56%; }
+
+@media (min-width: 800px) {
+  .item {
+    float: left;
+    width: 25%; } }
+.swiper-wrapper {
+  position: relative;
+  overflow: hidden; }
+
+.swiper-container {
+  overflow-x: scroll;
+  overflow-y: hidden;
+  margin-bottom: -30px;
+  -webkit-overflow-scrolling: touch; }
+
+[data-natural-scroll] {
+  padding-bottom: 30px; }
+  [data-natural-scroll]::after {
+    display: table;
+    content: ' ';
+    clear: both; }
+
+.swiper-prev,
+.swiper-next {
+  position: absolute;
+  z-index: 9;
+  margin-top: -34px;
+  width: 50px;
+  height: 0;
+  padding-top: 50px;
+  overflow: hidden;
+  background: #000;
+  border: none;
+  top: 50%; }
+  .swiper-prev.is-hidden,
+  .swiper-next.is-hidden {
+    z-index: -2;
+    visibility: hidden; }
+
+.swiper-prev {
+  left: 0; }
+
+.swiper-next {
+  right: 0; }
+
+/*# sourceMappingURL=swiper.css.map */
