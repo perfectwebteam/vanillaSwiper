@@ -14,12 +14,12 @@
 
     // Variables
     var vanillaSwiper = {}; // Object for public APIs
-    var supports = 'querySelector' in document && 'addEventListener' in root && 'classList' in document.createElement('_');; // Feature test
+    var supports = 'querySelector' in document && 'addEventListener' in root && 'classList' in document.createElement('_'); // Feature test
     var settings, eventTimeout;
 
     // Default settings
     var defaults = {
-        selector: '[data-natural-scroll]',
+        selector: '[data-natural-swipe]',
         swiperContainerClass: 'swiper-container',
         swiperWrapperClass: 'swiper-wrapper',
         swiperPrevClass: 'swiper-prev',
@@ -106,21 +106,21 @@
      * @param  {Function} callback The function to run after scrolling
      */
     var scrollStop = function($element, callback) {
-        
+
         // Make sure a valid callback was provided
         if (!callback || Object.prototype.toString.call(callback) !== '[object Function]') return;
-        
+
         // Setup scrolling variable
         var isScrolling;
-        
+
         // Listen for scroll events
         $element.addEventListener('scroll', function(event) {
-            
+
             // Clear our timeout throughout the scroll
             if (isScrolling !== null) {
                 clearTimeout(isScrolling);
             }
-            
+
             // Set a timeout to run after scrolling ends
             isScrolling = setTimeout(function() {
                 // Run the callback
@@ -162,34 +162,6 @@
 
         return widthNoScroll - widthWithScroll;
     }
-
-    /**
-     * Animation function
-     */
-    function animate(elem, style, unit, from, to, time, prop) {
-        if (!elem) {
-            return;
-        }
-        var start = new Date().getTime(),
-            timer = setInterval(function () {
-                var step = Math.min(1, (new Date().getTime() - start) / time);
-                if (prop) {
-                    elem[style] = (from + step * (to - from))+unit;
-                } else {
-                    elem.style[style] = (from + step * (to - from))+unit;
-                }
-                if (step === 1) {
-                    clearInterval(timer);
-                }
-            }, 25);
-        if (prop) {
-            elem[style] = from+unit;
-        } else {
-            elem.style[style] = from+unit;
-        }
-    }
-
-
 
     /**
      * Add buttons to the wrapper
@@ -285,12 +257,42 @@
     }
 
     /**
+     * Get window width
+     */
+    var winWidth = function() {
+        var documentElement = document.documentElement;
+        var body = document.getElementsByTagName('body')[0];
+        return window.innerWidth || documentElement.clientWidth || body.clientWidth;
+    };
+
+    /**
+     * Get current spacing
+     */
+    var currentSpacing = function($swiper, windowWidth) {
+        var spacing = JSON.parse($swiper.getAttribute('data-scroll-spacing')) || settings.spacing;
+
+        if (spacing !== null && typeof spacing === 'object') {
+
+            forEach(spacing, function(value, i) {
+                if ( windowWidth >= value.width ) {
+                    spacing = value.spacing;
+                }
+                else if ( windowWidth >= value.width && windowWidth < spacing[i + 1].width ) {
+                    spacing = value.spacing;
+                }
+            });
+        }
+
+        return spacing;
+    };
+
+    /**
      * calculateAmounts
      * Calculate amounts of items to show / scroll
      */
     var calculateAmounts = function($swiper) {
         var containerWidth = $swiper.parentNode.offsetWidth;
-        var itemSpacing = parseInt($swiper.getAttribute('data-scroll-spacing'), 10) || settings.spacing;
+        var itemSpacing = parseInt(currentSpacing($swiper, winWidth()), 10);
         var itemMaxWidth = parseInt($swiper.getAttribute('data-scroll-maxwidth'), 10) || settings.defaultMaxWidth;
         var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / (itemMaxWidth + (itemSpacing * 2)));
         return amountToScroll;
@@ -308,7 +310,7 @@
                 itemsToScroll = (settings.visiblePortion * 10) / itemsAmountToScroll,
                 parentWidth = itemsAmount * itemsToScroll,
                 itemsScrollWidth = 100 / itemsAmount,
-                itemSpacing = $swiper.getAttribute('data-scroll-spacing') || settings.spacing,
+                itemSpacing = parseInt(currentSpacing($swiper, winWidth()), 10),
                 $swipeContainer = $swiper.parentNode;
 
             // Set styling for individual items
@@ -343,7 +345,7 @@
         var swipewrapperWidth = $swipeWrapper.offsetWidth;
         var $swipeContainer = $swipeWrapper.querySelector('.' + settings.swiperContainerClass);
         var currentscroll = $swipeContainer.scrollLeft;
-        var $swipe = $swipeWrapper.querySelector('[data-natural-scroll]');
+        var $swipe = $swipeWrapper.querySelector('[data-natural-swipe]');
         var scrollAmount = calculateAmounts($swipe);
         var itemWidth = ($swipeWrapper.querySelector('.item').offsetWidth) * scrollAmount;
         var padding = (swipewrapperWidth - itemWidth) / 2;
@@ -356,19 +358,16 @@
             newPosition = $swipe.offsetWidth - swipewrapperWidth;
         }
         // Animate
-        TinyAnimate.animateCSS($swipeContainer, 'scrollLeft', '', currentscroll, newPosition, settings.animationSpeed, 'easeOutQuart', function() {
-            console.log('done!!!111oneone');
-        });
-        // animate($swipeContainer, "scrollLeft", "", currentscroll, newPosition, settings.animationSpeed, true);
+        TinyAnimate.animateCSS($swipeContainer, 'scrollLeft', '', currentscroll, newPosition, settings.animationSpeed, 'easeOutQuart', false);
     }
 
     /**
      * calculateScroll
      */
     var calculateScroll = function() {
-        var documentElement = document.documentElement;
-        var body = document.getElementsByTagName('body')[0];
-        var windowWidth = window.innerWidth || documentElement.clientWidth || body.clientWidth;
+
+        // Get window width
+        var windowWidth = winWidth();
 
         // Get all page swipers
         var swipers = document.querySelectorAll(settings.selector);
@@ -446,9 +445,6 @@
         // Show or hide button?
         calculateButtonVisibility(this);
 
-        scrollStop(this, function () {
-            // scroll to correct position?
-        });
     };
 
     /**
