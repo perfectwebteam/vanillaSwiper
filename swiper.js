@@ -19,7 +19,7 @@
 
     // Default settings
     var defaults = {
-        selector: '[data-natural-swipe]',
+        selector: '[data-swipe-natural]',
         swiperContainerClass: 'swiper-container',
         swiperWrapperClass: 'swiper-wrapper',
         swiperPrevClass: 'swiper-prev',
@@ -28,8 +28,7 @@
         animationSpeed: 500,
         spacing: 8,
         visiblePortion: 8.5,
-        defaultMaxWidth: 320,
-        scrollbarFallback: 20
+        defaultMaxWidth: 320
     };
 
     /**
@@ -130,7 +129,7 @@
     /**
      * Get scrollbar size
      */
-    function getScrollbarSize(fallback) {
+    var scrollbarSize = function() {
         // Outer div
         var outer = document.createElement("div");
         outer.style.visibility = "hidden";
@@ -153,12 +152,11 @@
 
         // Set fallback
         if (widthNoScroll == widthWithScroll) {
-            if (!fallback) { fallback = settings.scrollbarFallback }
-            return fallback;
+            return false;
         }
 
         return widthNoScroll - widthWithScroll;
-    }
+    };
 
     /**
      * Add buttons to the wrapper
@@ -211,7 +209,6 @@
      */
     function initialize(settings) {
 
-
         // Get all page swipers
         var swipers = document.querySelectorAll(settings.selector);
 
@@ -258,8 +255,6 @@
      * Get window width
      */
     var winWidth = function() {
-        var documentElement = document.documentElement;
-        var body = document.getElementsByTagName('body')[0];
         return window.innerWidth || documentElement.clientWidth || body.clientWidth;
     };
 
@@ -269,7 +264,7 @@
     var currentSpacing = function($swiper, windowWidth) {
 
         // Grab value
-        var spacing = JSON.parse($swiper.getAttribute('data-scroll-spacing')) || settings.spacing;
+        var spacing = JSON.parse($swiper.getAttribute('data-swipe-spacing')) || settings.spacing;
 
         // If value is an object
         if (spacing !== null && typeof spacing === 'object') {
@@ -299,7 +294,7 @@
     var calculateAmounts = function($swiper) {
         var containerWidth = $swiper.parentNode.offsetWidth;
         var itemSpacing = currentSpacing($swiper, winWidth());
-        var itemMaxWidth = parseInt($swiper.getAttribute('data-scroll-maxwidth'), 10) || settings.defaultMaxWidth;
+        var itemMaxWidth = parseInt($swiper.getAttribute('data-swipe-maxwidth'), 10) || settings.defaultMaxWidth;
         var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / (itemMaxWidth + (itemSpacing * 2)));
         return amountToScroll;
     };
@@ -333,8 +328,13 @@
             $swiper.style.width = parentWidth + '%';
 
             // Add padding to hide scrollbar
-            $swipeContainer.style.marginBottom = -(getScrollbarSize() * 2) + 'px';
-            $swiper.style.paddingBottom = getScrollbarSize() + 'px';
+            if ( scrollbarSize() !== false) {
+                $swipeContainer.style.marginBottom = -(scrollbarSize() * 2) + 'px';
+                $swiper.style.paddingBottom = scrollbarSize() + 'px';
+            } else {
+                $swipeContainer.style.marginBottom = '-20px';
+                $swiper.style.paddingBottom = '20px';
+            }
 
             // Hide buttons when they're not needed anymore
             if ($swipeContainer.offsetWidth >= $swiper.offsetWidth ) {
@@ -351,7 +351,7 @@
         var swipewrapperWidth = $swipeWrapper.offsetWidth;
         var $swipeContainer = $swipeWrapper.querySelector('.' + settings.swiperContainerClass);
         var currentscroll = $swipeContainer.scrollLeft;
-        var $swipe = $swipeWrapper.querySelector('[data-natural-swipe]');
+        var $swipe = $swipeWrapper.querySelector('[data-swipe-natural]');
         var scrollAmount = calculateAmounts($swipe);
         var itemWidth = ($swipeWrapper.querySelector('.item').offsetWidth) * scrollAmount;
         var padding = (swipewrapperWidth - itemWidth) / 2;
@@ -385,7 +385,7 @@
             forEach(swipers, function ($swiper) {
 
                 // Get value
-                var scrollUntil = parseInt($swiper.getAttribute('data-scroll-until'), 10) || 9999;
+                var scrollUntil = parseInt($swiper.getAttribute('data-swipe-until'), 10) || 9999;
 
                 // Enable swipe for swiper element
                 if (windowWidth < scrollUntil) {

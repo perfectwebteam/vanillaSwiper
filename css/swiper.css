@@ -32,7 +32,7 @@ body {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch; }
 
-[data-natural-swipe]::after {
+[data-swipe-natural]::after {
   display: table;
   content: ' ';
   clear: both; }
