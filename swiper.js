@@ -27,9 +27,9 @@
         hiddenClass: 'is-hidden',
         animationSpeed: 500,
         spacing: 8,
-        visiblePortion: 9,
+        visiblePortion: 8.5,
         defaultMaxWidth: 320,
-        scrollbarFallback: 30
+        scrollbarFallback: 20
     };
 
     /**
@@ -117,15 +117,13 @@
         $element.addEventListener('scroll', function(event) {
 
             // Clear our timeout throughout the scroll
-            if (isScrolling !== null) {
-                clearTimeout(isScrolling);
-            }
+            window.clearTimeout( isScrolling );
 
             // Set a timeout to run after scrolling ends
             isScrolling = setTimeout(function() {
                 // Run the callback
                 callback();
-            }, 66);
+            }, 122);
         }, false);
     };
 
@@ -133,22 +131,21 @@
      * Get scrollbar size
      */
     function getScrollbarSize(fallback) {
+        // Outer div
         var outer = document.createElement("div");
         outer.style.visibility = "hidden";
         outer.style.width = "100px";
         outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
-
         document.body.appendChild(outer);
-
         var widthNoScroll = outer.offsetWidth;
+
         // force scrollbars
         outer.style.overflow = "scroll";
 
-        // add innerdiv
+        // Inner div
         var inner = document.createElement("div");
         inner.style.width = "100%";
         outer.appendChild(inner);
-
         var widthWithScroll = inner.offsetWidth;
 
         // remove divs
@@ -167,16 +164,20 @@
      * Add buttons to the wrapper
      */
     function addButtons($swipeWrapper) {
+        // Create elements
         var $prevButton = document.createElement('button'),
             $nextButton = document.createElement('button');
 
+        // Add classes and hide prev button by default
         $prevButton.classList.add(settings.swiperPrevClass);
         $prevButton.style.display = 'none';
         $nextButton.classList.add(settings.swiperNextClass);
 
+        // Add to the DOM
         $swipeWrapper.parentNode.insertBefore($prevButton, $swipeWrapper);
         $swipeWrapper.parentNode.insertBefore($nextButton, $swipeWrapper.nextSibling);
 
+        // Add event listeners
         $prevButton.addEventListener('click', clickHandler, false);
         $nextButton.addEventListener('click', clickHandler, false);
     }
@@ -206,42 +207,33 @@
     }
 
     /**
-     * Remove buttons on destroy
-     */
-    function removeButtons($swipeWrapper) {
-        var $prevButton = $swipeWrapper.querySelector('.' + settings.swiperPrevClass);
-        var $nextButton = $swipeWrapper.querySelector('.' + settings.swiperNextClass);
-        $prevButton.parentNode.removeChild($prevButton);
-        $nextButton.parentNode.removeChild($nextButton);
-    }
-
-    /**
      * Initialize the swipers
      */
     function initialize(settings) {
 
+
         // Get all page swipers
         var swipers = document.querySelectorAll(settings.selector);
 
-        // See if any exist and initialize when so
+        // See if any exist
         if ( swipers && swipers.length ) {
 
+            // Loop through
             forEach(swipers, function($swiper) {
 
+                // Create elements
                 var $swipeWrapper = document.createElement('div'),
                     $swipeContainer = document.createElement('div');
 
+                // Add classes
                 $swipeWrapper.classList.add(settings.swiperWrapperClass);
                 $swipeContainer.classList.add(settings.swiperContainerClass);
 
+                // Add to DOM
                 $swiper.parentNode.insertBefore($swipeContainer, $swiper);
                 $swipeContainer.appendChild($swiper);
-
                 $swipeContainer.parentNode.insertBefore($swipeWrapper, $swipeContainer);
                 $swipeWrapper.appendChild($swipeContainer);
-
-                // Add scroll listener
-                $swipeContainer.addEventListener('scroll', scrollHandler, false);
 
                 // Add buttons
                 addButtons($swipeContainer);
@@ -249,8 +241,14 @@
                 // Set widths
                 setWidths($swiper);
 
-                // Calculate scroll
-                calculateScroll();
+                // Check for scrollstop
+                scrollStop($swipeContainer, function() {
+                    //console.log($swipeContainer, 'stopped');
+                    // @TODO: jump to right one after manual scroll? Maybe with a setting?
+                });
+
+                // Add scroll listener
+                $swipeContainer.addEventListener('scroll', scrollHandler, false);
 
             });
         }
@@ -269,21 +267,29 @@
      * Get current spacing
      */
     var currentSpacing = function($swiper, windowWidth) {
+
+        // Grab value
         var spacing = JSON.parse($swiper.getAttribute('data-scroll-spacing')) || settings.spacing;
 
+        // If value is an object
         if (spacing !== null && typeof spacing === 'object') {
 
+            // Loop through
             forEach(spacing, function(value, i) {
+
+                // If window is larger than largest width
                 if ( windowWidth >= value.width ) {
                     spacing = value.spacing;
                 }
+
+                // If window is larger than current width but smaller than next width
                 else if ( windowWidth >= value.width && windowWidth < spacing[i + 1].width ) {
                     spacing = value.spacing;
                 }
             });
         }
 
-        return spacing;
+        return parseInt(spacing, 10);
     };
 
     /**
@@ -292,7 +298,7 @@
      */
     var calculateAmounts = function($swiper) {
         var containerWidth = $swiper.parentNode.offsetWidth;
-        var itemSpacing = parseInt(currentSpacing($swiper, winWidth()), 10);
+        var itemSpacing = currentSpacing($swiper, winWidth());
         var itemMaxWidth = parseInt($swiper.getAttribute('data-scroll-maxwidth'), 10) || settings.defaultMaxWidth;
         var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / (itemMaxWidth + (itemSpacing * 2)));
         return amountToScroll;
@@ -310,7 +316,7 @@
                 itemsToScroll = (settings.visiblePortion * 10) / itemsAmountToScroll,
                 parentWidth = itemsAmount * itemsToScroll,
                 itemsScrollWidth = 100 / itemsAmount,
-                itemSpacing = parseInt(currentSpacing($swiper, winWidth()), 10),
+                itemSpacing = currentSpacing($swiper, winWidth()),
                 $swipeContainer = $swiper.parentNode;
 
             // Set styling for individual items
@@ -372,19 +378,26 @@
         // Get all page swipers
         var swipers = document.querySelectorAll(settings.selector);
 
-        // See if any exists and initialize when they do
+        // See if any exists
         if ( swipers && swipers.length ) {
 
+            // Loop through
             forEach(swipers, function ($swiper) {
+
+                // Get value
                 var scrollUntil = parseInt($swiper.getAttribute('data-scroll-until'), 10) || 9999;
 
+                // Enable swipe for swiper element
                 if (windowWidth < scrollUntil) {
                     vanillaSwiper.enable($swiper);
                 }
+
+                // Disable swipe for swiper element
                 else {
                     vanillaSwiper.disable($swiper);
                 }
 
+                // Show/hide buttons
                 calculateButtonVisibility($swiper.parentNode);
             });
         }
@@ -396,8 +409,7 @@
 
     function getWrapper($swiper) {
         var $swipeContainer = $swiper.parentNode;
-        var $swipeWrapper = $swipeContainer.parentNode;
-        return $swipeWrapper;
+        return $swipeContainer.parentNode;
     }
 
     /**
@@ -406,15 +418,19 @@
 
     function calculateButtonVisibility($swipeContainer) {
 
+        // Get elements
         var $swipeWrapper = $swipeContainer.parentNode;
         var $prevButton = $swipeWrapper.querySelector('.' + settings.swiperPrevClass);
         var $nextButton = $swipeWrapper.querySelector('.' + settings.swiperNextClass);
 
+        // Show / hide prev button
         if ($swipeContainer.scrollLeft > 0) {
             $prevButton.style.display ='block';
         } else {
             $prevButton.style.display ='none';
         }
+
+        // Show/hide next button
         if ($swipeContainer.scrollWidth - $swipeContainer.scrollLeft == $swipeContainer.offsetWidth) {
             $nextButton.style.display ='none';
         } else {
@@ -441,10 +457,8 @@
      * @private
      */
     var scrollHandler = function () {
-
         // Show or hide button?
         calculateButtonVisibility(this);
-
     };
 
     /**
@@ -507,10 +521,9 @@
         // Remove event listeners
         root.removeEventListener( 'resize', resizeThrottler, false );
 
-        // Remove the buttons
-        removeButtons();
+        // @TODO: make possible to destroy swipers
 
-        // Reset varaibles
+        // Reset variables
         settings = null;
     };
 

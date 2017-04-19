@@ -7,10 +7,6 @@ body {
   padding: 16px;
 }
 
-.items {
-  margin-bottom: 20px;
-}
-
 .inner {
   background: rgba(black, 0.25);
   outline: 2px solid rgba(black, 0.25);
@@ -24,7 +20,10 @@ body {
   padding-top: 56%;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1200px) {
+  .items {
+    margin-bottom: 20px;
+  }
   .item {
     float: left;
     width: calc(100% / 6);
