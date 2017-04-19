@@ -129,7 +129,7 @@
     /**
      * Get scrollbar size
      */
-    var scrollbarSize = function() {
+    function scrollbarSize() {
         // Outer div
         var outer = document.createElement("div");
         outer.style.visibility = "hidden";
@@ -156,7 +156,9 @@
         }
 
         return widthNoScroll - widthWithScroll;
-    };
+    }
+
+    var scrollbarSize = scrollbarSize();
 
     /**
      * Add buttons to the wrapper
@@ -239,10 +241,10 @@
                 setWidths($swiper);
 
                 // Check for scrollstop
-                scrollStop($swipeContainer, function() {
-                    //console.log($swipeContainer, 'stopped');
-                    // @TODO: jump to right one after manual scroll? Maybe with a setting?
-                });
+                // scrollStop($swipeContainer, function() {
+                //     //console.log($swipeContainer, 'stopped');
+                //     // @TODO: jump to right one after manual scroll? Maybe with a setting? Combine with scrollHandle?
+                // });
 
                 // Add scroll listener
                 $swipeContainer.addEventListener('scroll', scrollHandler, false);
@@ -328,9 +330,9 @@
             $swiper.style.width = parentWidth + '%';
 
             // Add padding to hide scrollbar
-            if ( scrollbarSize() !== false) {
-                $swipeContainer.style.marginBottom = -(scrollbarSize() * 2) + 'px';
-                $swiper.style.paddingBottom = scrollbarSize() + 'px';
+            if ( scrollbarSize !== false) {
+                $swipeContainer.style.marginBottom = -(scrollbarSize * 2) + 'px';
+                $swiper.style.paddingBottom = scrollbarSize + 'px';
             } else {
                 $swipeContainer.style.marginBottom = '-20px';
                 $swiper.style.paddingBottom = '20px';
