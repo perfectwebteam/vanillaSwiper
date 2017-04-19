@@ -39,15 +39,12 @@ body {
 }
 
 .swiper-container {
-  overflow-x: scroll;
+  overflow-x: auto;
   overflow-y: hidden;
-  margin-bottom: -30px;
   -webkit-overflow-scrolling: touch;
 }
 
 [data-natural-scroll] {
-  padding-bottom: 30px;
-
   &::after {
     display: table;
     content: ' ';
@@ -58,18 +55,18 @@ body {
 .swiper-prev,
 .swiper-next {
   position: absolute;
-  z-index: 9;
-  margin-top: -34px;
-  width: 50px;
+  z-index: 1;
+  margin-top: -22px;
+  width: 44px;
   height: 0;
-  padding-top: 50px;
+  padding-top: 44px;
   overflow: hidden;
   background: #000;
   border: none;
   top: 50%;
 
   &.is-hidden {
-    z-index: -2;
+    z-index: -1;
     visibility: hidden;
   }
 }

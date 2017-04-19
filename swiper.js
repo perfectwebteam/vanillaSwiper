@@ -25,10 +25,11 @@
         swiperPrevClass: 'swiper-prev',
         swiperNextClass: 'swiper-next',
         hiddenClass: 'is-hidden',
-        animationSpeed: 300,
+        animationSpeed: 500,
         spacing: 8,
         visiblePortion: 9,
-        defaultMaxWidth: 320
+        defaultMaxWidth: 320,
+        scrollbarFallback: 30
     };
 
     /**
@@ -129,6 +130,40 @@
     };
 
     /**
+     * Get scrollbar size
+     */
+    function getScrollbarSize(fallback) {
+        var outer = document.createElement("div");
+        outer.style.visibility = "hidden";
+        outer.style.width = "100px";
+        outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+
+        document.body.appendChild(outer);
+
+        var widthNoScroll = outer.offsetWidth;
+        // force scrollbars
+        outer.style.overflow = "scroll";
+
+        // add innerdiv
+        var inner = document.createElement("div");
+        inner.style.width = "100%";
+        outer.appendChild(inner);
+
+        var widthWithScroll = inner.offsetWidth;
+
+        // remove divs
+        outer.parentNode.removeChild(outer);
+
+        // Set fallback
+        if (widthNoScroll == widthWithScroll) {
+            if (!fallback) { fallback = settings.scrollbarFallback }
+            return fallback;
+        }
+
+        return widthNoScroll - widthWithScroll;
+    }
+
+    /**
      * Animation function
      */
     function animate(elem, style, unit, from, to, time, prop) {
@@ -153,6 +188,8 @@
             elem.style[style] = from+unit;
         }
     }
+
+
 
     /**
      * Add buttons to the wrapper
@@ -253,8 +290,9 @@
      */
     var calculateAmounts = function($swiper) {
         var containerWidth = $swiper.parentNode.offsetWidth;
+        var itemSpacing = parseInt($swiper.getAttribute('data-scroll-spacing'), 10) || settings.spacing;
         var itemMaxWidth = parseInt($swiper.getAttribute('data-scroll-maxwidth'), 10) || settings.defaultMaxWidth;
-        var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / itemMaxWidth);
+        var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / (itemMaxWidth + (itemSpacing * 2)));
         return amountToScroll;
     };
 
@@ -270,7 +308,8 @@
                 itemsToScroll = (settings.visiblePortion * 10) / itemsAmountToScroll,
                 parentWidth = itemsAmount * itemsToScroll,
                 itemsScrollWidth = 100 / itemsAmount,
-                itemSpacing = $swiper.getAttribute('data-scroll-padding') || settings.spacing;
+                itemSpacing = $swiper.getAttribute('data-scroll-spacing') || settings.spacing,
+                $swipeContainer = $swiper.parentNode;
 
             // Set styling for individual items
             forEach(items, function($item) {
@@ -281,13 +320,17 @@
             });
 
             // Set styling for the parent
+            $swipeContainer.style.marginLeft = -(itemSpacing) + 'px';
+            $swipeContainer.style.marginRight = -(itemSpacing) + 'px';
             $swiper.style.width = parentWidth + '%';
-            $swiper.parentNode.style.marginLeft = -(itemSpacing) + 'px';
-            $swiper.parentNode.style.marginRight = -(itemSpacing) + 'px';
+
+            // Add padding to hide scrollbar
+            $swipeContainer.style.marginBottom = -(getScrollbarSize() * 2) + 'px';
+            $swiper.style.paddingBottom = getScrollbarSize() + 'px';
 
             // Hide buttons when they're not needed anymore
-            if ($swiper.parentNode.offsetWidth >= $swiper.offsetWidth ) {
-                hideButtons($swiper.parentNode.parentNode);
+            if ($swipeContainer.offsetWidth >= $swiper.offsetWidth ) {
+                hideButtons($swipeContainer.parentNode);
             }
         }
     }
@@ -308,7 +351,15 @@
         var negativeMargin = Math.abs(parseInt(window.getComputedStyle($swipeContainer).marginLeft, 10));
         if (direction == 'next') { currentAmount = Math.ceil(currentscroll / itemWidth) + 1; }
         var newPosition = (itemWidth * currentAmount) - (padding + (negativeMargin));
-        animate($swipeContainer, "scrollLeft", "", currentscroll, newPosition, settings.animationSpeed, true);
+        // when scrolling more items than are still available
+        if (newPosition > ($swipe.offsetWidth - swipewrapperWidth) ) {
+            newPosition = $swipe.offsetWidth - swipewrapperWidth;
+        }
+        // Animate
+        TinyAnimate.animateCSS($swipeContainer, 'scrollLeft', '', currentscroll, newPosition, settings.animationSpeed, 'easeOutQuart', function() {
+            console.log('done!!!111oneone');
+        });
+        // animate($swipeContainer, "scrollLeft", "", currentscroll, newPosition, settings.animationSpeed, true);
     }
 
     /**
@@ -501,3 +552,131 @@
     return vanillaSwiper;
 
 });
+
+
+/**
+ * TinyAnimate
+ *  version 0.3.0
+ *
+ * Source:  https://github.com/branneman/TinyAnimate
+ * Author:  Bran van der Meer <branmovic@gmail.com> (http://bran.name/)
+ * License: MIT
+ *
+ * Functions:
+ *  TinyAnimate.animate(from, to, duration, update, easing, done)
+ *  TinyAnimate.animateCSS(element, property, unit, from, to, duration, easing, done)
+ *  TinyAnimate.cancel(animation)
+ *
+ * Parameters:
+ *  element   HTMLElement        A dom node
+ *  property  string             Property name, as available in element.style, i.e. 'borderRadius', not 'border-radius'
+ *  unit      string             Property unit, like 'px'
+ *  from      int                Property value to animate from
+ *  to        int                Property value to animate to
+ *  duration  int                Duration in milliseconds
+ *  update    function           Function to implement updating the DOM, get's called with a value between `from` and `to`
+ *  easing    string | function  Optional: A string when the easing function is available in TinyAnimate.easings,
+ *                                or a function with the signature: function(t, b, c, d) {...}
+ *  done      function           Optional: To be executed when the animation has completed.
+ *
+ * Returns:
+ *  animation object             Animation object that can be canceled.
+ */
+/**
+ * Universal Module Dance
+ *  config: CommonJS Strict, exports Global, supports circular dependencies
+ *  https://github.com/umdjs/umd/
+ */
+(function(root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['exports'], function(exports) {
+            factory((root.TinyAnimate = exports));
+        });
+    } else if (typeof exports === 'object') {
+        factory(exports);
+    } else {
+        factory((root.TinyAnimate = {}));
+    }
+}(this, function(exports) {
+    /**
+     * TinyAnimate.animate()
+     */
+    exports.animate = function(from, to, duration, update, easing, done) {
+        // Early bail out if called incorrectly
+        if (typeof from !== 'number' ||
+            typeof to !== 'number' ||
+            typeof duration !== 'number' ||
+            typeof update !== 'function')
+            return;
+        // Determine easing
+        if (typeof easing === 'string' && easings[easing]) {
+            easing = easings[easing];
+        }
+        if (typeof easing !== 'function') {
+            easing = easings.linear;
+        }
+        // Create mock done() function if necessary
+        if (typeof done !== 'function') {
+            done = function() {};
+        }
+        // Pick implementation (requestAnimationFrame | setTimeout)
+        var rAF = window.requestAnimationFrame || function(callback) {
+                window.setTimeout(callback, 1000 / 60);
+            };
+        // Animation loop
+        var canceled = false;
+        var change = to - from;
+        function loop(timestamp) {
+            if (canceled) {
+                return;
+            }
+            var time = (timestamp || +new Date()) - start;
+            if (time >= 0) {
+                update(easing(time, from, change, duration));
+            }
+            if (time >= 0 && time >= duration) {
+                update(to);
+                done();
+            } else {
+                rAF(loop);
+            }
+        }
+        update(from);
+        // Start animation loop
+        var start = window.performance && window.performance.now ? window.performance.now() : +new Date();
+        rAF(loop);
+        return {
+            cancel: function() {
+                canceled = true;
+            }
+        };
+    };
+    /**
+     * TinyAnimate.animateCSS()
+     *  Shortcut method for animating css properties
+     */
+    exports.animateCSS = function(element, property, unit, from, to, duration, easing, done) {
+        var update = function(value) {
+            element[property] = value + unit;
+        };
+        return exports.animate(from, to, duration, update, easing, done);
+    };
+    /**
+     * TinyAnimate.cancel()
+     *  Method for canceling animations
+     */
+    exports.cancel = function(animation) {
+        if (!animation) {
+            return;
+        }
+        animation.cancel();
+    };
+    /**
+     * TinyAnimate.easings
+     *  Adapted from jQuery Easing
+     */
+    var easings = exports.easings = {};
+    easings.easeOutQuart = function(t, b, c, d) {
+        return -c * ((t = t / d - 1) * t * t * t - 1) + b;
+    };
+}));
