@@ -15,7 +15,7 @@
     // Variables
     var vanillaSwiper = {}; // Object for public APIs
     var supports = 'querySelector' in document && 'addEventListener' in root && 'classList' in document.createElement('_'); // Feature test
-    var settings, eventTimeout;
+    var settings, eventTimeout, scrollbarSize;
 
     // Default settings
     var defaults = {
@@ -129,7 +129,7 @@
     /**
      * Get scrollbar size
      */
-    function scrollbarSize() {
+    function calculateScrollbarSize() {
         // Outer div
         var outer = document.createElement("div");
         outer.style.visibility = "hidden";
@@ -157,8 +157,6 @@
 
         return widthNoScroll - widthWithScroll;
     }
-
-    var scrollbarSize = scrollbarSize();
 
     /**
      * Add buttons to the wrapper
@@ -544,6 +542,9 @@
 
         // Selectors and variables
         settings = extend( defaults, options || {} ); // Merge user options with defaults
+
+        // Get scrollbar size
+        scrollbarSize = calculateScrollbarSize();
 
         // Initialize
         initialize(settings);
