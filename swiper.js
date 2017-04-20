@@ -247,7 +247,7 @@
 
             });
 
-            // calculateScroll();
+            calculateScroll();
         }
     }
 
