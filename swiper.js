@@ -236,9 +236,6 @@
                 // Add buttons
                 addButtons($swipeContainer);
 
-                // Set widths
-                setWidths($swiper);
-
                 // Check for scrollstop
                 // scrollStop($swipeContainer, function() {
                 //     //console.log($swipeContainer, 'stopped');
@@ -249,6 +246,8 @@
                 $swipeContainer.addEventListener('scroll', scrollHandler, false);
 
             });
+
+            // calculateScroll();
         }
     }
 
