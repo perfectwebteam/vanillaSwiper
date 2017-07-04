@@ -24,7 +24,9 @@
         swiperContainerClass: 'swiper-container',
         swiperWrapperClass: 'swiper-wrapper',
         swiperPrevClass: 'swiper-prev',
+        swiperPrevContent: '<span class="swiper-prev__content">Previous</span>',
         swiperNextClass: 'swiper-next',
+        swiperNextContent: '<span class="swiper-next__content">Next</span>',
         hiddenClass: 'is-hidden',
         animationSpeed: 500,
         spacing: 8,
@@ -169,8 +171,10 @@
 
         // Add classes and hide prev button by default
         $prevButton.classList.add(settings.swiperPrevClass);
+        $prevButton.innerHTML = settings.swiperPrevContent;
         $prevButton.style.display = 'none';
         $nextButton.classList.add(settings.swiperNextClass);
+        $nextButton.innerHTML = settings.swiperNextContent;
 
         // Add to the DOM
         $swipeWrapper.parentNode.insertBefore($prevButton, $swipeWrapper);
