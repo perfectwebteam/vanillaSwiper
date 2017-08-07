@@ -24,6 +24,7 @@
         swiperContainerClass: 'swiper-container',
         swiperWrapperClass: 'swiper-wrapper',
         swiperPrevClass: 'swiper-prev',
+        swiperEnabledClass: 'swiper-enabled',
         swiperPrevContent: '<span class="swiper-prev__content">Previous</span>',
         swiperNextClass: 'swiper-next',
         swiperNextContent: '<span class="swiper-next__content">Next</span>',
@@ -498,6 +499,9 @@
         $swiper.removeAttribute('style');
         $swiper.parentNode.removeAttribute('style');
 
+        // Remove enabled class
+        $swiper.classList.remove(settings.swiperEnabledClass);
+
     };
 
     /**
@@ -506,11 +510,14 @@
      */
     vanillaSwiper.enable = function ($swiper) {
 
-        // Hide the buttons
+        // Show the buttons
         showButtons(getWrapper($swiper));
 
         // Set widths
         setWidths($swiper);
+
+        // Add enabled class
+        $swiper.classList.add(settings.swiperEnabledClass);
     };
 
     /**
