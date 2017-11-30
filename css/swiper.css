@@ -28,6 +28,9 @@
   .swiper-next.is-hidden {
     z-index: -1;
     visibility: hidden; }
+  .swiper-prev.is-disabled,
+  .swiper-next.is-disabled {
+    opacity: 0.5; }
 
 .swiper-prev {
   left: 0; }

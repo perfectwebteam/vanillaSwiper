@@ -30,10 +30,12 @@
         swiperNextContent: '<span class="swiper-next__content">Next</span>',
         hiddenClass: 'is-hidden',
         animationSpeed: 500,
+        disabledButtonClass: 'is-disabled',
         spacing: 8,
         visiblePortion: 8.5,
         defaultMaxWidth: 320
     };
+
 
     /**
      * A simple forEach() implementation for Arrays, Objects and NodeLists.
@@ -57,6 +59,7 @@
             }
         }
     };
+
 
     /**
      * Merge two or more objects. Returns a new object.
@@ -103,6 +106,7 @@
 
     };
 
+
     /**
      * scrollStop.js | (c) 2017 Chris Ferdinandi | MIT License | http://github.com/cferdinandi/scrollStop
      * Run functions after scrolling has stopped
@@ -114,7 +118,7 @@
         if (!callback || Object.prototype.toString.call(callback) !== '[object Function]') return;
 
         // Setup scrolling variable
-        var isScrolling;
+        var isScrolling ;
 
         // Listen for scroll events
         $element.addEventListener('scroll', function(event) {
@@ -124,11 +128,12 @@
 
             // Set a timeout to run after scrolling ends
             isScrolling = setTimeout(function() {
-                // Run the callback
+                // Run the callback and return direction
                 callback();
             }, 122);
         }, false);
     };
+
 
     /**
      * Get scrollbar size
@@ -162,53 +167,130 @@
         return widthNoScroll - widthWithScroll;
     }
 
+
+    /**
+     * Get window width
+     */
+    var winWidth = function() {
+        return window.innerWidth || documentElement.clientWidth || body.clientWidth;
+    };
+
+
     /**
      * Add buttons to the wrapper
      */
-    function addButtons($swipeWrapper) {
+    function addButtons($swiper) {
+
+        // Variables
+        var $swiperContainer = $swiper.parentNode,
+            $swiperWrapper = $swiper.parentNode.parentNode;
+
+        // Return if buttons are already there
+        if ($swiperWrapper.firstChild.classList.contains(settings.swiperPrevClass)) return;
+
         // Create elements
         var $prevButton = document.createElement('button'),
             $nextButton = document.createElement('button');
 
         // Add classes and hide prev button by default
-        $prevButton.classList.add(settings.swiperPrevClass);
+        $prevButton.classList.add(settings.swiperPrevClass, settings.disabledButtonClass);
         $prevButton.innerHTML = settings.swiperPrevContent;
-        $prevButton.style.display = 'none';
+        $prevButton.disabled = true;
         $nextButton.classList.add(settings.swiperNextClass);
         $nextButton.innerHTML = settings.swiperNextContent;
 
         // Add to the DOM
-        $swipeWrapper.parentNode.insertBefore($prevButton, $swipeWrapper);
-        $swipeWrapper.parentNode.insertBefore($nextButton, $swipeWrapper.nextSibling);
+        $swiperContainer.parentNode.insertBefore($prevButton, $swiperContainer);
+        $swiperContainer.parentNode.insertBefore($nextButton, $swiperContainer.nextSibling);
 
         // Add event listeners
         $prevButton.addEventListener('click', clickHandler, false);
         $nextButton.addEventListener('click', clickHandler, false);
     }
 
-    /**
-     * Hide buttons when scrolling is unavailable
-     */
-    function hideButtons($swipeWrapper) {
-        var $prevButton = $swipeWrapper.querySelector('.' + settings.swiperPrevClass);
-        var $nextButton = $swipeWrapper.querySelector('.' + settings.swiperNextClass);
-        $prevButton.classList.add(settings.hiddenClass);
-        $nextButton.classList.add(settings.hiddenClass);
-        $prevButton.setAttribute('disabled', 'disabled');
-        $nextButton.setAttribute('disabled', 'disabled');
-    }
 
     /**
-     * Display buttons when scrolling is available again
+     * Remove buttons from wrapper
      */
-    function showButtons($swipeWrapper) {
-        var $prevButton = $swipeWrapper.querySelector('.' + settings.swiperPrevClass);
-        var $nextButton = $swipeWrapper.querySelector('.' + settings.swiperNextClass);
-        $prevButton.classList.remove(settings.hiddenClass);
-        $nextButton.classList.remove(settings.hiddenClass);
-        $prevButton.removeAttribute('disabled');
-        $nextButton.removeAttribute('disabled');
+    function removeButtons($swiper) {
+
+        // Variables
+        var $swiperWrapper = $swiper.parentNode.parentNode;
+
+        // Return if parent element is not a swiper wrapper
+        if (!$swiperWrapper.classList.contains(settings.swiperWrapperClass)) return;
+
+        var $prevButton = $swiperWrapper.getElementsByClassName(settings.swiperPrevClass)[0],
+            $nextButton = $swiperWrapper.getElementsByClassName(settings.swiperNextClass)[0];
+
+        // Remove event listeners
+        $prevButton.removeEventListener('click', clickHandler, false);
+        $nextButton.removeEventListener('click', clickHandler, false);
+
+        // Remove buttons
+        $prevButton.parentNode.removeChild($prevButton);
+        $nextButton.parentNode.removeChild($nextButton);
     }
+
+
+    /**
+     * Hide buttons
+     */
+    function hideButtons($swiper) {
+        if ($swiper.parentNode.previousSibling.classList.contains(settings.swiperPrevClass)) {
+            $swiper.parentNode.previousSibling.style.display = 'none';
+        }
+        if ($swiper.parentNode.nextSibling.classList.contains(settings.swiperNextClass)) {
+            $swiper.parentNode.nextSibling.style.display = 'none';
+        }
+    }
+
+
+    /**
+     * Show buttons
+     */
+    function showButtons($swiper) {
+        if ($swiper.parentNode.previousSibling.classList.contains(settings.swiperPrevClass)) {
+            $swiper.parentNode.previousSibling.removeAttribute('style');
+        }
+        if ($swiper.parentNode.nextSibling.classList.contains(settings.swiperNextClass)) {
+            $swiper.parentNode.nextSibling.removeAttribute('style');
+        }
+    }
+
+
+    /**
+     * Enable the swiper
+     */
+    function enableSwiper($swiper) {
+
+        // Return if swiper is already wrapped
+        if ($swiper.parentNode.classList.contains(settings.swiperContainerClass)) return;
+
+        // Create elements
+        var $swipeWrapper = document.createElement('div'),
+            $swipeContainer = document.createElement('div');
+
+        // Add classes
+        $swipeWrapper.classList.add(settings.swiperWrapperClass);
+        $swipeContainer.classList.add(settings.swiperContainerClass);
+
+        // Add to DOM
+        $swiper.parentNode.insertBefore($swipeContainer, $swiper);
+        $swipeContainer.appendChild($swiper);
+        $swipeContainer.parentNode.insertBefore($swipeWrapper, $swipeContainer);
+        $swipeWrapper.appendChild($swipeContainer);
+
+        // Add buttons
+        addButtons($swiper);
+
+        // Add enabled class
+        $swiper.classList.add(settings.swiperEnabledClass);
+
+        // Add scroll listener
+        $swipeContainer.addEventListener('scroll', scrollHandler, false);
+    }
+
 
     /**
      * Initialize the swipers
@@ -221,47 +303,20 @@
         // See if any exist
         if ( swipers && swipers.length ) {
 
-            // Loop through
-            forEach(swipers, function($swiper) {
-
-                // Create elements
-                var $swipeWrapper = document.createElement('div'),
-                    $swipeContainer = document.createElement('div');
-
-                // Add classes
-                $swipeWrapper.classList.add(settings.swiperWrapperClass);
-                $swipeContainer.classList.add(settings.swiperContainerClass);
-
-                // Add to DOM
-                $swiper.parentNode.insertBefore($swipeContainer, $swiper);
-                $swipeContainer.appendChild($swiper);
-                $swipeContainer.parentNode.insertBefore($swipeWrapper, $swipeContainer);
-                $swipeWrapper.appendChild($swipeContainer);
-
-                // Add buttons
-                addButtons($swipeContainer);
+            // Loop through them
+            forEach(swipers, function ($swiper) {
+                calculateScroll($swiper);
 
                 // Check for scrollstop
                 // scrollStop($swipeContainer, function() {
                 //     //console.log($swipeContainer, 'stopped');
                 //     // @TODO: jump to right one after manual scroll? Maybe with a setting? Combine with scrollHandle?
                 // });
-
-                // Add scroll listener
-                $swipeContainer.addEventListener('scroll', scrollHandler, false);
-
             });
 
-            calculateScroll();
         }
     }
 
-    /**
-     * Get window width
-     */
-    var winWidth = function() {
-        return window.innerWidth || documentElement.clientWidth || body.clientWidth;
-    };
 
     /**
      * Get current spacing
@@ -292,6 +347,7 @@
         return parseInt(spacing, 10);
     };
 
+
     /**
      * calculateAmounts
      * Calculate amounts of items to show / scroll
@@ -303,6 +359,7 @@
         var amountToScroll = Math.ceil((containerWidth * (settings.visiblePortion / 10)) / (itemMaxWidth + (itemSpacing * 2)));
         return amountToScroll;
     };
+
 
     /**
      * setWidths
@@ -331,6 +388,7 @@
             $swipeContainer.style.marginLeft = -(itemSpacing) + 'px';
             $swipeContainer.style.marginRight = -(itemSpacing) + 'px';
             $swiper.style.width = parentWidth + '%';
+            $swipeContainer.setAttribute('data-items-to-scroll', itemsAmountToScroll);
 
             // Add padding to hide scrollbar
             if ( scrollbarSize !== false) {
@@ -341,23 +399,25 @@
                 $swiper.style.paddingBottom = '20px';
             }
 
-            // Hide buttons when they're not needed anymore
+            // Hide / show buttons
             if ($swipeContainer.offsetWidth >= $swiper.offsetWidth ) {
-                hideButtons($swipeContainer.parentNode);
+                hideButtons($swiper);
+            } else {
+                showButtons($swiper);
             }
         }
     }
 
+
     /**
      * scrollTo
      */
-    function scrollTo($button, direction) {
-        var $swipeWrapper = $button.parentNode;
+    function scrollTo($swipeWrapper, direction) {
         var swipewrapperWidth = $swipeWrapper.offsetWidth;
         var $swipeContainer = $swipeWrapper.querySelector('.' + settings.swiperContainerClass);
         var currentscroll = $swipeContainer.scrollLeft;
         var $swipe = $swipeWrapper.querySelector('[data-swipe-natural]');
-        var scrollAmount = calculateAmounts($swipe);
+        var scrollAmount = $swipeContainer.getAttribute('data-items-to-scroll');
         var itemWidth = ($swipeWrapper.querySelector(settings.item).offsetWidth) * scrollAmount;
         var padding = (swipewrapperWidth - itemWidth) / 2;
         var currentAmount = Math.ceil(currentscroll / itemWidth) - 1;
@@ -372,50 +432,30 @@
         TinyAnimate.animateCSS($swipeContainer, 'scrollLeft', '', currentscroll, newPosition, settings.animationSpeed, 'easeOutQuart', false);
     }
 
+
     /**
      * calculateScroll
      */
-    var calculateScroll = function() {
+    var calculateScroll = function($swiper) {
 
         // Get window width
         var windowWidth = winWidth();
 
-        // Get all page swipers
-        var swipers = document.querySelectorAll(settings.selector);
+        // Get value
+        var scrollUntil = parseInt($swiper.getAttribute('data-swipe-until'), 10) || 9999;
 
-        // See if any exists
-        if ( swipers && swipers.length ) {
-
-            // Loop through
-            forEach(swipers, function ($swiper) {
-
-                // Get value
-                var scrollUntil = parseInt($swiper.getAttribute('data-swipe-until'), 10) || 9999;
-
-                // Enable swipe for swiper element
-                if (windowWidth < scrollUntil) {
-                    vanillaSwiper.enable($swiper);
-                }
-
-                // Disable swipe for swiper element
-                else {
-                    vanillaSwiper.disable($swiper);
-                }
-
-                // Show/hide buttons
-                calculateButtonVisibility($swiper.parentNode);
-            });
+        // Enable swipe for swiper element
+        if (windowWidth < scrollUntil) {
+            vanillaSwiper.enable($swiper);
         }
+
+        // Disable swipe for swiper element
+        else {
+            vanillaSwiper.disable($swiper);
+        }
+
     };
 
-    /**
-     * Get current wrapper
-     */
-
-    function getWrapper($swiper) {
-        var $swipeContainer = $swiper.parentNode;
-        return $swipeContainer.parentNode;
-    }
 
     /**
      * Calculate button visibility
@@ -425,21 +465,57 @@
 
         // Get elements
         var $swipeWrapper = $swipeContainer.parentNode;
+
+        if (!$swipeContainer.parentNode.classList.contains(settings.swiperWrapperClass)) {
+            return
+        }
+
         var $prevButton = $swipeWrapper.querySelector('.' + settings.swiperPrevClass);
         var $nextButton = $swipeWrapper.querySelector('.' + settings.swiperNextClass);
 
         // Show / hide prev button
         if ($swipeContainer.scrollLeft > 0) {
-            $prevButton.style.display ='block';
+            $prevButton.classList.remove(settings.disabledButtonClass);
+            $prevButton.removeAttribute('disabled');
         } else {
-            $prevButton.style.display ='none';
+            $prevButton.disabled = true;
+            $prevButton.classList.add(settings.disabledButtonClass);
         }
 
         // Show/hide next button
         if ($swipeContainer.scrollWidth - $swipeContainer.scrollLeft == $swipeContainer.offsetWidth) {
-            $nextButton.style.display ='none';
+            $nextButton.setAttribute('disabled', 'disabled');
+            $nextButton.classList.add(settings.disabledButtonClass);
         } else {
-            $nextButton.style.display ='block';
+            $nextButton.classList.remove(settings.disabledButtonClass);
+            $nextButton.removeAttribute('disabled');
+        }
+    }
+
+
+    /**
+     * Remove wrappers and styling
+     */
+
+    function disableSwiper($swiper) {
+
+        // Get all children
+        var items = $swiper.children;
+
+        // Remove all styling
+        forEach(items, function($item) {
+            $item.removeAttribute('style');
+        });
+
+        // Remove enabled class
+        $swiper.classList.remove(settings.swiperEnabledClass);
+
+        // Remove all styling from swiper
+        $swiper.removeAttribute('style');
+
+        // Remove wrappers
+        if ($swiper.parentNode.classList.contains(settings.swiperContainerClass)) {
+            $swiper.parentNode.parentNode.outerHTML = $swiper.parentNode.innerHTML;
         }
     }
 
@@ -450,10 +526,10 @@
     var clickHandler = function () {
         var className = this.className;
         if ( className == settings.swiperPrevClass) {
-            scrollTo(this, 'prev');
+            scrollTo(this.parentNode, 'prev');
         }
         if ( className == settings.swiperNextClass) {
-            scrollTo(this, 'next');
+            scrollTo(this.parentNode, 'next');
         }
     };
 
@@ -476,7 +552,20 @@
         if ( !eventTimeout ) {
             eventTimeout = setTimeout(function() {
                 eventTimeout = null; // Reset timeout
-                calculateScroll();
+
+                // Get all page swipers
+                var swipers = document.querySelectorAll(settings.selector);
+
+                // See if any exist
+                if ( swipers && swipers.length ) {
+
+                    // Loop through
+                    forEach(swipers, function ($swiper) {
+                        calculateScroll($swiper);
+                    });
+
+                }
+
             }, 66);
         }
     };
@@ -488,19 +577,10 @@
     vanillaSwiper.disable = function ($swiper) {
 
         // Hide the buttons
-        hideButtons(getWrapper($swiper));
+        removeButtons($swiper);
 
-        // Reset styling
-        var items = $swiper.children;
-        forEach(items, function($item) {
-            $item.removeAttribute('style');
-        });
-
-        $swiper.removeAttribute('style');
-        $swiper.parentNode.removeAttribute('style');
-
-        // Remove enabled class
-        $swiper.classList.remove(settings.swiperEnabledClass);
+        // Disbale the swiper
+        disableSwiper($swiper);
 
     };
 
@@ -510,21 +590,19 @@
      */
     vanillaSwiper.enable = function ($swiper) {
 
-        // Show the buttons
-        showButtons(getWrapper($swiper));
+        // Disbale the swiper
+        enableSwiper($swiper);
 
         // Set widths
         setWidths($swiper);
 
-        // Add enabled class
-        $swiper.classList.add(settings.swiperEnabledClass);
     };
 
     /**
      * Destroy the current initialization.
      * @public
      */
-    vanillaSwiper.destroy = function () {
+    vanillaSwiper.destroy = function ($swiper) {
 
         // If plugin isn't already initialized, stop
         if ( !settings ) return;
@@ -532,7 +610,11 @@
         // Remove event listeners
         root.removeEventListener( 'resize', resizeThrottler, false );
 
-        // @TODO: make possible to destroy swipers
+        // Remove the buttons
+        removeButtons($swiper);
+
+        // Disbale the swiper
+        disableSwiper($swiper);
 
         // Reset variables
         settings = null;
@@ -560,7 +642,7 @@
         // Initialize
         initialize(settings);
 
-        // If window is resized and there's a fixed header, recalculate its size
+        // If window is resized
         if ( vanillaSwiper ) {
             root.addEventListener( 'resize', resizeThrottler, false );
         }

@@ -8,6 +8,7 @@ body {
 }
 
 .inner {
+  display: block;
   background: rgba(black, 0.25);
   outline: 2px solid rgba(black, 0.25);
   outline-offset: -2px;
