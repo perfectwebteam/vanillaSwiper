@@ -180,6 +180,9 @@
      */
     function addButtons($swiper) {
 
+        // Sanity check
+        if (!$swiper) return;
+
         // Variables
         var $swiperContainer = $swiper.parentNode,
             $swiperWrapper = $swiper.parentNode.parentNode;
@@ -213,6 +216,9 @@
      */
     function removeButtons($swiper) {
 
+        // Sanity check
+        if (!$swiper) return;
+
         // Variables
         var $swiperWrapper = $swiper.parentNode.parentNode;
 
@@ -236,6 +242,10 @@
      * Hide buttons
      */
     function hideButtons($swiper) {
+
+        // Sanity check
+        if (!$swiper) return;
+
         if ($swiper.parentNode.previousSibling.classList.contains(settings.swiperPrevClass)) {
             $swiper.parentNode.previousSibling.style.display = 'none';
         }
@@ -249,6 +259,10 @@
      * Show buttons
      */
     function showButtons($swiper) {
+
+        // Sanity check
+        if (!$swiper) return;
+
         if ($swiper.parentNode.previousSibling.classList.contains(settings.swiperPrevClass)) {
             $swiper.parentNode.previousSibling.removeAttribute('style');
         }
@@ -262,6 +276,9 @@
      * Enable the swiper
      */
     function enableSwiper($swiper) {
+
+        // Sanity check
+        if (!$swiper) return;
 
         // Return if swiper is already wrapped
         if ($swiper.parentNode.classList.contains(settings.swiperContainerClass)) return;
@@ -437,6 +454,9 @@
      */
     var calculateScroll = function($swiper) {
 
+        // Sanity check
+        if (!$swiper) return;
+
         // Get window width
         var windowWidth = winWidth();
 
@@ -497,6 +517,9 @@
      */
 
     function disableSwiper($swiper) {
+
+        // Sanity check
+        if (!$swiper) return;
 
         // Get all children
         var items = $swiper.children;
