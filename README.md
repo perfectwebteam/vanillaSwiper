@@ -8,7 +8,7 @@ A vanilla JS alternative to JS sliders. Using the native touch device scroll and
 ```html
 <div class="parent" data-swipe-natural>
     <div class="child"> <!-- Don't style this one since we use padding to separate items -->
-        <div class="child__item">This is where the actual styling goes</div>
+        <div class="child__item">Visible item itself</div>
     </div>
 </div>
 ```

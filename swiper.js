@@ -20,7 +20,6 @@
     // Default settings
     var defaults = {
         selector: '[data-swipe-natural]',
-        item: '.item',
         swiperContainerClass: 'swiper-container',
         swiperWrapperClass: 'swiper-wrapper',
         swiperPrevClass: 'swiper-prev',
@@ -418,7 +417,7 @@
         var currentscroll = $swipeContainer.scrollLeft;
         var $swipe = $swipeWrapper.querySelector('[data-swipe-natural]');
         var scrollAmount = $swipeContainer.getAttribute('data-items-to-scroll');
-        var itemWidth = ($swipeWrapper.querySelector(settings.item).offsetWidth) * scrollAmount;
+        var itemWidth = ($swipeWrapper.querySelector(settings.selector + ' > *').offsetWidth) * scrollAmount; // @TODO: calculate from swiepr instead of using set class
         var padding = (swipewrapperWidth - itemWidth) / 2;
         var currentAmount = Math.ceil(currentscroll / itemWidth) - 1;
         var negativeMargin = Math.abs(parseInt(window.getComputedStyle($swipeContainer).marginLeft, 10));
