@@ -320,8 +320,13 @@
         if ( swipers && swipers.length ) {
 
             // Loop through them
-            forEach(swipers, function ($swiper) {
-                calculateScroll($swiper);
+            forEach(swipers, function (value, prop) {
+
+                // See if there's a start item
+                var $startItem = swipers[prop].querySelector('[data-swipe-start]');
+
+                // Calculate scroll
+                calculateScroll(swipers[prop], $startItem);
 
                 // Check for scrollstop
                 // scrollStop($swipeContainer, function() {
@@ -381,7 +386,7 @@
      * setWidths
      * Set the width of the swiper element and it's children
      */
-    function setWidths($swiper) {
+    function setWidths($swiper, $startItem) {
         if ($swiper.parentNode.classList.contains(settings.swiperContainerClass)) {
             var items = $swiper.children,
                 itemsAmount = items.length,
@@ -421,6 +426,13 @@
             } else {
                 showButtons($swiper);
             }
+
+            // Scroll to active element
+            setTimeout(function() {
+                if ($startItem) {
+                    scrollTo($swipeContainer.parentNode, 'next', $startItem);
+                }
+            }, 32);
         }
     }
 
@@ -428,22 +440,27 @@
     /**
      * scrollTo
      */
-    function scrollTo($swipeWrapper, direction) {
+    function scrollTo($swipeWrapper, direction, $item) {
         var swipewrapperWidth = $swipeWrapper.offsetWidth;
         var $swipeContainer = $swipeWrapper.querySelector('.' + settings.swiperContainerClass);
         var currentscroll = $swipeContainer.scrollLeft;
         var $swipe = $swipeWrapper.querySelector('[data-swipe-natural]');
         var scrollAmount = $swipeContainer.getAttribute('data-items-to-scroll');
-        var itemWidth = ($swipeWrapper.querySelector(settings.selector + ' > *').offsetWidth) * scrollAmount; // @TODO: calculate from swiepr instead of using set class
+        var itemWidth = ($swipeWrapper.querySelector(settings.selector + ' > *').offsetWidth) * scrollAmount; // @TODO: calculate from swiper instead of using set class
         var padding = (swipewrapperWidth - itemWidth) / 2;
         var currentAmount = Math.ceil(currentscroll / itemWidth) - 1;
         var negativeMargin = Math.abs(parseInt(window.getComputedStyle($swipeContainer).marginLeft, 10));
         if (direction == 'next') { currentAmount = Math.ceil(currentscroll / itemWidth) + 1; }
-        var newPosition = (itemWidth * currentAmount) - (padding + (negativeMargin));
+        var newPosition = (itemWidth * currentAmount) - (padding + negativeMargin);
         // when scrolling more items than are still available
         if (newPosition > ($swipe.offsetWidth - swipewrapperWidth) ) {
             newPosition = $swipe.offsetWidth - swipewrapperWidth;
         }
+        // If has initial start item
+        if ($item) {
+            newPosition = $item.offsetLeft - (padding + negativeMargin);
+        }
+
         // Animate
         TinyAnimate.animateCSS($swipeContainer, 'scrollLeft', '', currentscroll, newPosition, settings.animationSpeed, 'easeOutQuart', false);
     }
@@ -452,7 +469,8 @@
     /**
      * calculateScroll
      */
-    var calculateScroll = function($swiper) {
+    var calculateScroll = function($swiper, $startItem) {
+
 
         // Sanity check
         if (!$swiper) return;
@@ -465,7 +483,7 @@
 
         // Enable swipe for swiper element
         if (windowWidth < scrollUntil) {
-            vanillaSwiper.enable($swiper);
+            vanillaSwiper.enable($swiper, $startItem);
         }
 
         // Disable swipe for swiper element
@@ -610,13 +628,13 @@
      * Enable the current initialization.
      * @public
      */
-    vanillaSwiper.enable = function ($swiper) {
+    vanillaSwiper.enable = function ($swiper, $startItem) {
 
         // Disbale the swiper
         enableSwiper($swiper);
 
         // Set widths
-        setWidths($swiper);
+        setWidths($swiper, $startItem);
 
     };
 
