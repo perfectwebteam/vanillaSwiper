@@ -198,8 +198,10 @@
         $prevButton.classList.add(settings.swiperPrevClass, settings.disabledButtonClass);
         $prevButton.innerHTML = settings.swiperPrevContent;
         $prevButton.disabled = true;
+        $prevButton.setAttribute('type', 'button');
         $nextButton.classList.add(settings.swiperNextClass);
         $nextButton.innerHTML = settings.swiperNextContent;
+        $nextButton.setAttribute('type', 'button');
 
         // Add to the DOM
         $swiperContainer.parentNode.insertBefore($prevButton, $swiperContainer);
